@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, pgEnum, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -33,7 +33,9 @@ export const apiKeys = pgTable('api_keys', {
   status: apiKeyStatusEnum('status').default('active').notNull(),
   lastUsedAt: timestamp('last_used_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  prefixIdx: index('api_keys_prefix_idx').on(table.keyPrefix),
+}));
 
 export const usageLogs = pgTable('usage_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -43,7 +45,10 @@ export const usageLogs = pgTable('usage_logs', {
   statusCode: integer('status_code'),
   ipAddress: text('ip_address'),
   timestamp: timestamp('timestamp').defaultNow().notNull(),
-});
+}, (table) => ({
+  timestampIdx: index('usage_logs_timestamp_idx').on(table.timestamp),
+  apiKeyIdx: index('usage_logs_api_key_idx').on(table.apiKeyId),
+}));
 
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
